@@ -154,7 +154,7 @@ pub const ArchiveReader = struct {
                 while (offset >= 0) : (offset -= 1) {
                     const signature = std.mem.readIntLittle(u32, buf[offset..][0..4]);
                     if (signature == format.EndOfCentralDirectory64Locator.signature) {
-                        try seeker.seekBy(-@intCast(i64, read - offset) + 4);
+                        try seeker.seekBy(-@as(i64, @intCast(read - offset)) + 4);
                         break :find_eocd64l;
                     }
 
@@ -190,8 +190,8 @@ pub const ArchiveReader = struct {
 
         self.start_offset -= directory_offset + directory_size;
 
-        try self.directory.resize(self.allocator, entries_total);
-        try self.filename_buf.ensureTotalCapacity(self.allocator, directory_size - (entries_total * 42));
+        try self.directory.resize(self.allocator, @intCast(entries_total));
+        try self.filename_buf.ensureTotalCapacity(self.allocator, @intCast(directory_size - (entries_total * 42)));
 
         try seeker.seekTo(self.start_offset + directory_offset);
 
@@ -234,7 +234,7 @@ pub const ArchiveReader = struct {
 
                         const nread64 = pos - before;
                         if (nread64 != data_len) {
-                            try BufferedSeekableSource.seekBy(seeker, &buffered, @intCast(i64, data_len - nread64));
+                            try BufferedSeekableSource.seekBy(seeker, &buffered, @intCast(data_len - nread64));
                             pos += data_len - nread64;
                         }
                     } else {
@@ -251,7 +251,7 @@ pub const ArchiveReader = struct {
 
         self.filename_buf.shrinkAndFree(self.allocator, self.filename_buf.items.len);
 
-        std.sort.sort(format.CentralDirectoryRecord, self.directory.items, self.filename_buf.items, lessThanCentralDirectoryRecord);
+        std.sort.block(format.CentralDirectoryRecord, self.directory.items, self.filename_buf.items, lessThanCentralDirectoryRecord);
     }
 
     fn readFilename(self: ArchiveReader, item: format.CentralDirectoryRecord) []const u8 {
@@ -330,7 +330,7 @@ pub const ArchiveReader = struct {
 
         var fifo = std.fifo.LinearFifo(u8, .{ .Static = 8192 }).init();
 
-        var limited = BufferedSeekableSource.LimitedReader.init(buffered_reader, header.compressed_size);
+        var limited = BufferedSeekableSource.LimitedReader.init(buffered_reader, @intCast(header.compressed_size));
         const limited_reader = limited.reader();
 
         var hashing = HashingWriter(@TypeOf(writer), format.Crc32).init(writer);

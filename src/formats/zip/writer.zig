@@ -62,20 +62,20 @@ pub const ArchiveWriter = struct {
             eocd.entries_on_disk = math.maxInt(u16);
             eocd.entries_total = math.maxInt(u16);
         } else {
-            eocd.entries_on_disk = @truncate(u16, self.directory.items.len);
-            eocd.entries_total = @truncate(u16, self.directory.items.len);
+            eocd.entries_on_disk = @intCast(self.directory.items.len);
+            eocd.entries_total = @intCast(self.directory.items.len);
         }
 
         if (needs_size64) {
             eocd.directory_size = math.maxInt(u32);
         } else {
-            eocd.directory_size = @truncate(u32, dir_size);
+            eocd.directory_size = @intCast(dir_size);
         }
 
         if (needs_offset64) {
             eocd.directory_offset = math.maxInt(u32);
         } else {
-            eocd.directory_offset = @truncate(u32, offset);
+            eocd.directory_offset = @intCast(offset);
         }
 
         if (needs_entries64 or needs_size64 or needs_offset64) {
@@ -116,7 +116,7 @@ pub const ArchiveWriter = struct {
         local.signature = format.LocalFileRecord.signature;
         local.compression_method = if (compress) .deflated else .none;
 
-        local.filename_len = @truncate(u16, name.len);
+        local.filename_len = @intCast(name.len);
 
         const uncomp_size = try src.getEndPos();
         const local_offset = try self.sink.getPos();
@@ -137,7 +137,7 @@ pub const ArchiveWriter = struct {
 
         local.extra_len = extra.length();
 
-        try self.sink.seekBy(@intCast(i64, format.LocalFileRecord.size + name.len + local.extra_len));
+        try self.sink.seekBy(@intCast(format.LocalFileRecord.size + name.len + local.extra_len));
 
         var hashing = HashingReader.init(src.reader());
         var buffered = BufferedWriter{ .unbuffered_writer = self.sink.writer() };
@@ -167,8 +167,8 @@ pub const ArchiveWriter = struct {
             local.uncompressed_size = math.maxInt(u32);
             local.compressed_size = math.maxInt(u32);
         } else {
-            local.uncompressed_size = @intCast(u32, uncomp_size);
-            local.compressed_size = @intCast(u32, comp_size);
+            local.uncompressed_size = @intCast(uncomp_size);
+            local.compressed_size = @intCast(comp_size);
         }
 
         local.crc32 = hashing.hash.final();
@@ -206,7 +206,7 @@ pub const ArchiveWriter = struct {
             entry.local_offset = math.maxInt(u32);
             entry.extra_len = extra.length();
         } else {
-            entry.local_offset = @intCast(u32, local_offset);
+            entry.local_offset = @intCast(local_offset);
         }
 
         entry.filename_idx = self.filenames.items.len;

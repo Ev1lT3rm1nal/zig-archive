@@ -11,7 +11,7 @@ pub fn main() !void {
         const fd = try in_dir.dir.openFile(entry.name, .{});
         defer fd.close();
 
-        const str = try fd.readToEndAlloc(alloc, 1024 * 1024 * 1024);
+        const str = try fd.readToEndAlloc(alloc, std.math.maxInt(usize));
         defer alloc.free(str);
 
         var stream = std.io.fixedBufferStream(@as([]const u8, str));

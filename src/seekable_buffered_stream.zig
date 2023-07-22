@@ -23,10 +23,10 @@ pub fn mixin(comptime ReaderType: type, comptime SeekerType: type) type {
                 buffer.end - buffer.start;
 
             if (offset > 0) {
-                const u_offset = @intCast(u64, offset);
+                const u_offset: u64 = @intCast(offset);
 
                 if (u_offset <= count) {
-                    buffer.start += u_offset;
+                    buffer.start += @intCast(u_offset);
                     if (buffer.start > buffer.buf.len)
                         buffer.start %= buffer.buf.len;
                 } else if (u_offset <= count + buffer.buf.len) {
@@ -38,10 +38,10 @@ pub fn mixin(comptime ReaderType: type, comptime SeekerType: type) type {
                     const left = u_offset - count;
 
                     buffer.start = buffer.end;
-                    try seeker.seekBy(@intCast(i64, left));
+                    try seeker.seekBy(@intCast(left));
                 }
             } else {
-                const left = offset - @intCast(i64, count);
+                const left = offset - @as(i64, @intCast(count));
 
                 buffer.start = buffer.end;
                 try seeker.seekBy(left);
@@ -60,7 +60,7 @@ pub fn mixin(comptime ReaderType: type, comptime SeekerType: type) type {
         }
 
         pub fn seekTo(seeker: SeekerType, buffer: *BufferedReader, pos: u64) !void {
-            const offset = @intCast(i64, pos) - @intCast(i64, try getPos(seeker, buffer));
+            const offset = @as(i64, @intCast(pos)) - @as(i64, @intCast(try getPos(seeker, buffer)));
 
             try seeker.seekBy(buffer, offset);
         }
@@ -85,7 +85,8 @@ pub fn mixin(comptime ReaderType: type, comptime SeekerType: type) type {
             fn read(self: *Self, dest: []u8) Error!usize {
                 if (self.pos >= self.limit) return 0;
 
-                const left = std.math.min(self.limit - self.pos, dest.len);
+                const left =
+                    @min(self.limit - self.pos, dest.len);
                 const num_read = try self.unlimited_reader.read(dest[0..left]);
                 self.pos += num_read;
 

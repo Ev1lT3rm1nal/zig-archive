@@ -11,14 +11,29 @@ const bench = .{
     "bench_zip",
 };
 
+pub fn addArchive(b: *Builder, target: std.zig.CrossTarget, optimize: std.builtin.OptimizeMode) *std.Build.CompileStep {
+    var archive = b.addStaticLibrary(.{
+        .root_source_file = .{ .path = "src/main.zig" },
+        .name = "archive",
+        .target = target,
+        .optimize = optimize,
+    });
+    return archive;
+}
+
+pub fn addModuleArchive(b: *Builder, step: *Builder.CompileStep) void {
+    const archive_module = b.addModule("archive", .{
+        .source_file = .{ .path = "zig-archive/src/main.zig" },
+    });
+    step.addModule("archive", archive_module);
+}
+
 pub fn build(b: *Builder) void {
     const optimize = b.standardOptimizeOption(.{});
 
-    b.addModule(.{
-        .name = "archive",
+    const archive_module = b.addModule("archive", .{
         .source_file = .{ .path = "src/main.zig" },
     });
-    const archive_module = b.modules.get("archive") orelse unreachable;
 
     // Library Tests
 
@@ -47,8 +62,8 @@ pub fn build(b: *Builder) void {
 
         zip_runner.addModule("archive", archive_module);
 
-        zip_runner.install();
-        const run_zip_runner = zip_runner.run();
+        b.installArtifact(zip_runner);
+        const run_zip_runner = b.addRunArtifact(zip_runner);
 
         const run_tests = b.step(file, "Run tests");
         run_tests.dependOn(&run_zip_runner.step);
@@ -74,8 +89,8 @@ pub fn build(b: *Builder) void {
         zip_bench.addOptions("build_options", bench_options);
         zip_bench.addModule("archive", archive_module);
 
-        zip_bench.install();
-        const run_zip_bench = zip_bench.run();
+        b.installArtifact(zip_bench);
+        const run_zip_bench = b.addRunArtifact(zip_bench);
 
         const zip_bench_step = b.step(file, "Run benchmark");
         zip_bench_step.dependOn(&run_zip_bench.step);

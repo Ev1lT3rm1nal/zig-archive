@@ -10,7 +10,7 @@ pub const CompressionMethod = enum(u16) {
     _,
 };
 
-const Crc32Poly = @intToEnum(std.hash.crc.Polynomial, 0xEDB88320);
+const Crc32Poly: std.hash.crc.Polynomial = @enumFromInt(0xEDB88320);
 pub const Crc32 = std.hash.crc.Crc32WithPoly(Crc32Poly);
 
 pub const Version = struct {
@@ -45,16 +45,16 @@ pub const Version = struct {
     pub fn read(entry: u16) Version {
         var ver: Version = undefined;
 
-        ver.major = @truncate(u8, entry) / 10;
-        ver.minor = @truncate(u8, entry) % 10;
-        ver.vendor = @intToEnum(Vendor, @truncate(u8, entry >> 8));
+        ver.major = @as(u8, @truncate(entry)) / 10;
+        ver.minor = @as(u8, @truncate(entry)) % 10;
+        ver.vendor = @enumFromInt(@as(u8, @truncate(entry >> 8)));
 
         return ver;
     }
 
     pub fn write(self: Version) u16 {
         const version = @as(u16, self.major * 10 + self.minor);
-        const vendor = @as(u16, @enumToInt(self.vendor)) << 8;
+        const vendor = @as(u16, @intFromEnum(self.vendor)) << 8;
 
         return version | vendor;
     }
@@ -89,11 +89,11 @@ pub const GeneralPurposeBitFlag = packed struct {
     __15_reserved: u1,
 
     pub fn read(entry: u16) GeneralPurposeBitFlag {
-        return @bitCast(GeneralPurposeBitFlag, entry);
+        return @bitCast(entry);
     }
 
     pub fn write(self: GeneralPurposeBitFlag) u16 {
-        return @bitCast(u16, self);
+        return @bitCast(self);
     }
 };
 
@@ -108,13 +108,13 @@ pub const DosTimestamp = struct {
     pub fn read(entry: [2]u16) DosTimestamp {
         var self: DosTimestamp = undefined;
 
-        self.second = @as(u6, @truncate(u5, entry[0])) << 1;
-        self.minute = @truncate(u6, entry[0] >> 5);
-        self.hour = @truncate(u5, entry[0] >> 11);
+        self.second = @as(u6, @truncate(entry[0])) << 1;
+        self.minute = @truncate(entry[0] >> 5);
+        self.hour = @truncate(entry[0] >> 11);
 
-        self.day = @truncate(u5, entry[1]);
-        self.month = @truncate(u4, entry[1] >> 5);
-        self.year = @as(u12, @truncate(u7, entry[1] >> 9)) + 1980;
+        self.day = @truncate(entry[1]);
+        self.month = @truncate(entry[1] >> 5);
+        self.year = @as(u12, @as(u7, @truncate(entry[1] >> 9))) + 1980;
 
         return self;
     }
@@ -122,9 +122,9 @@ pub const DosTimestamp = struct {
     pub fn write(self: DosTimestamp) [2]u16 {
         var buf: [2]u8 = undefined;
 
-        const second = @as(u16, @truncate(u5, self.second >> 1));
-        const minute = @as(u16, @truncate(u5, self.minute) << 5);
-        const hour = @as(u16, @truncate(u5, self.hour) << 11);
+        const second = @as(u16, @as(u5, @truncate(self.second >> 1)));
+        const minute = @as(u16, @as(u5, @truncate(self.minute)) << 5);
+        const hour = @as(u16, @as(u5, @truncate(self.hour)) << 11);
 
         buf[0] = second | minute | hour;
 
@@ -165,8 +165,8 @@ pub const LocalFileRecord = struct {
         if (self.signature != signature) return error.InvalidSignature;
 
         self.version = mem.readIntLittle(u16, buf[4..6]);
-        self.flags = @bitCast(GeneralPurposeBitFlag, mem.readIntLittle(u16, buf[6..8]));
-        self.compression_method = @intToEnum(CompressionMethod, mem.readIntLittle(u16, buf[8..10]));
+        self.flags = @bitCast(mem.readIntLittle(u16, buf[6..8]));
+        self.compression_method = @enumFromInt(mem.readIntLittle(u16, buf[8..10]));
         self.last_mod_time = mem.readIntLittle(u16, buf[10..12]);
         self.last_mod_date = mem.readIntLittle(u16, buf[12..14]);
         self.crc32 = mem.readIntLittle(u32, buf[14..18]);
@@ -182,8 +182,8 @@ pub const LocalFileRecord = struct {
         try writer.writeIntLittle(u32, signature);
 
         try writer.writeIntLittle(u16, self.version);
-        try writer.writeIntLittle(u16, @bitCast(u16, self.flags));
-        try writer.writeIntLittle(u16, @enumToInt(self.compression_method));
+        try writer.writeIntLittle(u16, @as(u16, @bitCast(self.flags)));
+        try writer.writeIntLittle(u16, @intFromEnum(self.compression_method));
         try writer.writeIntLittle(u16, self.last_mod_time);
         try writer.writeIntLittle(u16, self.last_mod_date);
         try writer.writeIntLittle(u32, self.crc32);
@@ -228,8 +228,8 @@ pub const CentralDirectoryRecord = struct {
 
         record.version_made = mem.readIntLittle(u16, buf[0..2]);
         record.version_needed = mem.readIntLittle(u16, buf[2..4]);
-        record.flags = @bitCast(GeneralPurposeBitFlag, mem.readIntLittle(u16, buf[4..6]));
-        record.compression_method = @intToEnum(CompressionMethod, mem.readIntLittle(u16, buf[6..8]));
+        record.flags = @bitCast(mem.readIntLittle(u16, buf[4..6]));
+        record.compression_method = @enumFromInt(mem.readIntLittle(u16, buf[6..8]));
         record.last_mod_time = mem.readIntLittle(u16, buf[8..10]);
         record.last_mod_date = mem.readIntLittle(u16, buf[10..12]);
         record.crc32 = mem.readIntLittle(u32, buf[12..16]);
@@ -251,20 +251,20 @@ pub const CentralDirectoryRecord = struct {
 
         try writer.writeIntLittle(u16, self.version_made);
         try writer.writeIntLittle(u16, self.version_needed);
-        try writer.writeIntLittle(u16, @bitCast(u16, self.flags));
-        try writer.writeIntLittle(u16, @enumToInt(self.compression_method));
+        try writer.writeIntLittle(u16, @as(u16, @bitCast(self.flags)));
+        try writer.writeIntLittle(u16, @as(u16, @intFromEnum(self.compression_method)));
         try writer.writeIntLittle(u16, self.last_mod_time);
         try writer.writeIntLittle(u16, self.last_mod_date);
         try writer.writeIntLittle(u32, self.crc32);
-        try writer.writeIntLittle(u32, @truncate(u32, self.compressed_size));
-        try writer.writeIntLittle(u32, @truncate(u32, self.uncompressed_size));
+        try writer.writeIntLittle(u32, @as(u16, @truncate(self.compressed_size)));
+        try writer.writeIntLittle(u32, @as(u16, @truncate(self.uncompressed_size)));
         try writer.writeIntLittle(u16, self.filename_len);
         try writer.writeIntLittle(u16, self.extra_len);
         try writer.writeIntLittle(u16, self.comment_len);
         try writer.writeIntLittle(u16, self.disk_number_start);
         try writer.writeIntLittle(u16, self.internal_attributes);
         try writer.writeIntLittle(u32, self.external_attributes);
-        try writer.writeIntLittle(u32, @truncate(u32, self.local_offset));
+        try writer.writeIntLittle(u32, @as(u16, @truncate(self.local_offset)));
     }
 
     pub fn needs64(self: CentralDirectoryRecord) bool {
