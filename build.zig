@@ -12,7 +12,7 @@ const bench = .{
 };
 
 pub fn addArchive(b: *Builder, target: std.zig.CrossTarget, optimize: std.builtin.OptimizeMode) *std.Build.CompileStep {
-    var archive = b.addStaticLibrary(.{
+    const archive = b.addStaticLibrary(.{
         .root_source_file = .{ .path = "src/main.zig" },
         .name = "archive",
         .target = target,
