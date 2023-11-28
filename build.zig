@@ -30,6 +30,7 @@ pub fn addModuleArchive(b: *Builder, step: *Builder.CompileStep) void {
 
 pub fn build(b: *Builder) void {
     const optimize = b.standardOptimizeOption(.{});
+    const target = b.standardTargetOptions(.{});
 
     const archive_module = b.addModule("archive", .{
         .source_file = .{ .path = "src/main.zig" },
@@ -40,6 +41,7 @@ pub fn build(b: *Builder) void {
     const lib_tests = b.addTest(.{
         .root_source_file = .{ .path = "src/main.zig" },
         .optimize = optimize,
+        .target = target,
     });
 
     const lib_tests_step = b.step("test", "Run all library tests");
