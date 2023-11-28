@@ -8,7 +8,7 @@ const build_options = @import("build_options");
 const alloc = std.heap.page_allocator;
 
 pub fn main() !void {
-    const in_dir = try std.fs.cwd().openIterableDir("tests/zip", .{});
+    const in_dir = try std.fs.cwd().openDir("tests/zip", .{ .iterate = true });
 
     // Write Benchmarks
 
@@ -21,15 +21,15 @@ pub fn main() !void {
         var runtime_timer = std.time.Timer.start() catch unreachable;
         var first = true;
 
-        var buf = try alloc.alloc(u8, 1037802);
+        const buf = try alloc.alloc(u8, 1037802);
         defer alloc.free(buf);
 
         while (benchmark.run()) {
-            const fd = try in_dir.dir.createFile("small.zip", .{});
+            const fd = try in_dir.createFile("small.zip", .{});
             defer fd.close();
-            defer if (comptime build_options.void_write) in_dir.dir.deleteFile("small.zip") catch {};
+            defer if (comptime build_options.void_write) in_dir.deleteFile("small.zip") catch {};
 
-            var fbs = std.io.fixedBufferStream(buf);
+            const fbs = std.io.fixedBufferStream(buf);
 
             var stream = if (comptime build_options.void_write)
                 std.io.StreamSource{ .buffer = fbs }
@@ -49,7 +49,7 @@ pub fn main() !void {
                 try arc.writeString(name, "aaaa", false);
             }
 
-            const offset = @intCast(usize, try stream.getPos());
+            const offset = @as(usize, @intCast(try stream.getPos()));
 
             benchmark.add("add", timer.read());
             benchmark.setSize("add", offset);
@@ -58,7 +58,7 @@ pub fn main() !void {
 
             try arc.finish();
 
-            const offset_after = @intCast(usize, try stream.getPos());
+            const offset_after = @as(usize, @intCast(try stream.getPos()));
 
             benchmark.add("finish", timer.read());
             benchmark.setSize("finish", offset_after - offset);
@@ -93,21 +93,20 @@ pub fn main() !void {
         var runtime_timer = std.time.Timer.start() catch unreachable;
         var first = true;
 
-        var buf = try alloc.alloc(u8, 13402);
+        const buf = try alloc.alloc(u8, 13402);
         defer alloc.free(buf);
 
         while (benchmark.run()) {
-            const fd = try in_dir.dir.createFile("large.zip", .{});
+            const fd = try in_dir.createFile("large.zip", .{});
             defer fd.close();
-            defer if (comptime build_options.void_write) in_dir.dir.deleteFile("large.zip") catch {};
+            defer if (comptime build_options.void_write) in_dir.deleteFile("large.zip") catch {};
 
-            var fbs = std.io.fixedBufferStream(buf);
+            const fbs = std.io.fixedBufferStream(buf);
 
             var stream = if (comptime build_options.void_write)
                 std.io.StreamSource{ .buffer = fbs }
             else
                 std.io.StreamSource{ .file = fd };
-
 
             var arc = archive.formats.zip.writer.ArchiveWriter.init(alloc, &stream);
             defer arc.deinit();
@@ -122,7 +121,7 @@ pub fn main() !void {
                 try arc.writeString(name, "aaaa" ** 4096, true);
             }
 
-            const offset = @intCast(usize, try stream.getPos());
+            const offset = @as(usize, @intCast(try stream.getPos()));
 
             benchmark.add("add", timer.read());
             benchmark.setSize("add", offset);
@@ -131,7 +130,7 @@ pub fn main() !void {
 
             try arc.finish();
 
-            const offset_after = @intCast(usize, try stream.getPos());
+            const offset_after = @as(usize, @intCast(try stream.getPos()));
 
             benchmark.add("finish", timer.read());
             benchmark.setSize("finish", offset_after - offset);
@@ -171,7 +170,7 @@ pub fn main() !void {
         var benchmark = Benchmark(.{ "load", "extract" }, build_options.runtime){};
         var timer = std.time.Timer.start() catch unreachable;
 
-        const fd = try in_dir.dir.openFile(entry.name, .{});
+        const fd = try in_dir.openFile(entry.name, .{});
         defer fd.close();
 
         const extract_path = try std.fs.path.join(alloc, &.{ "tests/extract/zip", entry.name });
@@ -217,7 +216,7 @@ pub fn main() !void {
 
             var size: usize = 0;
 
-            for (arc.directory.items) |_, j| {
+            for (arc.directory.items, 0..) |_, j| {
                 const hdr = arc.getHeader(j);
 
                 size += hdr.uncompressed_size;

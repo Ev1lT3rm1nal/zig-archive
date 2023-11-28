@@ -161,36 +161,36 @@ pub const LocalFileRecord = struct {
         const nread = try reader.readAll(&buf);
         if (nread == 0) return error.EndOfStream;
 
-        self.signature = mem.readIntLittle(u32, buf[0..4]);
+        self.signature = mem.readInt(u32, buf[0..4], .little);
         if (self.signature != signature) return error.InvalidSignature;
 
-        self.version = mem.readIntLittle(u16, buf[4..6]);
-        self.flags = @bitCast(mem.readIntLittle(u16, buf[6..8]));
-        self.compression_method = @enumFromInt(mem.readIntLittle(u16, buf[8..10]));
-        self.last_mod_time = mem.readIntLittle(u16, buf[10..12]);
-        self.last_mod_date = mem.readIntLittle(u16, buf[12..14]);
-        self.crc32 = mem.readIntLittle(u32, buf[14..18]);
-        self.compressed_size = mem.readIntLittle(u32, buf[18..22]);
-        self.uncompressed_size = mem.readIntLittle(u32, buf[22..26]);
-        self.filename_len = mem.readIntLittle(u16, buf[26..28]);
-        self.extra_len = mem.readIntLittle(u16, buf[28..30]);
+        self.version = mem.readInt(u16, buf[4..6], .little);
+        self.flags = @bitCast(mem.readInt(u16, buf[6..8], .little));
+        self.compression_method = @enumFromInt(mem.readInt(u16, buf[8..10], .little));
+        self.last_mod_time = mem.readInt(u16, buf[10..12], .little);
+        self.last_mod_date = mem.readInt(u16, buf[12..14], .little);
+        self.crc32 = mem.readInt(u32, buf[14..18], .little);
+        self.compressed_size = mem.readInt(u32, buf[18..22], .little);
+        self.uncompressed_size = mem.readInt(u32, buf[22..26], .little);
+        self.filename_len = mem.readInt(u16, buf[26..28], .little);
+        self.extra_len = mem.readInt(u16, buf[28..30], .little);
 
         return self;
     }
 
     pub fn write(self: LocalFileRecord, writer: anytype) !void {
-        try writer.writeIntLittle(u32, signature);
+        try writer.writeInt(u32, signature, .little);
 
-        try writer.writeIntLittle(u16, self.version);
-        try writer.writeIntLittle(u16, @as(u16, @bitCast(self.flags)));
-        try writer.writeIntLittle(u16, @intFromEnum(self.compression_method));
-        try writer.writeIntLittle(u16, self.last_mod_time);
-        try writer.writeIntLittle(u16, self.last_mod_date);
-        try writer.writeIntLittle(u32, self.crc32);
-        try writer.writeIntLittle(u32, self.compressed_size);
-        try writer.writeIntLittle(u32, self.uncompressed_size);
-        try writer.writeIntLittle(u16, self.filename_len);
-        try writer.writeIntLittle(u16, self.extra_len);
+        try writer.writeInt(u16, self.version, .little);
+        try writer.writeInt(u16, @as(u16, @bitCast(self.flags)), .little);
+        try writer.writeInt(u16, @intFromEnum(self.compression_method), .little);
+        try writer.writeInt(u16, self.last_mod_time, .little);
+        try writer.writeInt(u16, self.last_mod_date, .little);
+        try writer.writeInt(u32, self.crc32, .little);
+        try writer.writeInt(u32, self.compressed_size, .little);
+        try writer.writeInt(u32, self.uncompressed_size, .little);
+        try writer.writeInt(u16, self.filename_len, .little);
+        try writer.writeInt(u16, self.extra_len, .little);
     }
 };
 
@@ -217,7 +217,7 @@ pub const CentralDirectoryRecord = struct {
     filename_idx: usize,
 
     pub fn read(reader: anytype) !CentralDirectoryRecord {
-        const sig = try reader.readIntLittle(u32);
+        const sig = try reader.readInt(u32, .little);
         if (sig != signature) return error.InvalidSignature;
 
         var record: CentralDirectoryRecord = undefined;
@@ -226,45 +226,45 @@ pub const CentralDirectoryRecord = struct {
         const nread = try reader.readAll(&buf);
         if (nread == 0) return error.EndOfStream;
 
-        record.version_made = mem.readIntLittle(u16, buf[0..2]);
-        record.version_needed = mem.readIntLittle(u16, buf[2..4]);
-        record.flags = @bitCast(mem.readIntLittle(u16, buf[4..6]));
-        record.compression_method = @enumFromInt(mem.readIntLittle(u16, buf[6..8]));
-        record.last_mod_time = mem.readIntLittle(u16, buf[8..10]);
-        record.last_mod_date = mem.readIntLittle(u16, buf[10..12]);
-        record.crc32 = mem.readIntLittle(u32, buf[12..16]);
-        record.compressed_size = mem.readIntLittle(u32, buf[16..20]);
-        record.uncompressed_size = mem.readIntLittle(u32, buf[20..24]);
-        record.filename_len = mem.readIntLittle(u16, buf[24..26]);
-        record.extra_len = mem.readIntLittle(u16, buf[26..28]);
-        record.comment_len = mem.readIntLittle(u16, buf[28..30]);
-        record.disk_number_start = mem.readIntLittle(u16, buf[30..32]);
-        record.internal_attributes = mem.readIntLittle(u16, buf[32..34]);
-        record.external_attributes = mem.readIntLittle(u32, buf[34..38]);
-        record.local_offset = mem.readIntLittle(u32, buf[38..42]);
+        record.version_made = mem.readInt(u16, buf[0..2], .little);
+        record.version_needed = mem.readInt(u16, buf[2..4], .little);
+        record.flags = @bitCast(mem.readInt(u16, buf[4..6], .little));
+        record.compression_method = @enumFromInt(mem.readInt(u16, buf[6..8], .little));
+        record.last_mod_time = mem.readInt(u16, buf[8..10], .little);
+        record.last_mod_date = mem.readInt(u16, buf[10..12], .little);
+        record.crc32 = mem.readInt(u32, buf[12..16], .little);
+        record.compressed_size = mem.readInt(u32, buf[16..20], .little);
+        record.uncompressed_size = mem.readInt(u32, buf[20..24], .little);
+        record.filename_len = mem.readInt(u16, buf[24..26], .little);
+        record.extra_len = mem.readInt(u16, buf[26..28], .little);
+        record.comment_len = mem.readInt(u16, buf[28..30], .little);
+        record.disk_number_start = mem.readInt(u16, buf[30..32], .little);
+        record.internal_attributes = mem.readInt(u16, buf[32..34], .little);
+        record.external_attributes = mem.readInt(u32, buf[34..38], .little);
+        record.local_offset = mem.readInt(u32, buf[38..42], .little);
 
         return record;
     }
 
     pub fn write(self: CentralDirectoryRecord, writer: anytype) !void {
-        try writer.writeIntLittle(u32, signature);
+        try writer.writeInt(u32, signature, .little);
 
-        try writer.writeIntLittle(u16, self.version_made);
-        try writer.writeIntLittle(u16, self.version_needed);
-        try writer.writeIntLittle(u16, @as(u16, @bitCast(self.flags)));
-        try writer.writeIntLittle(u16, @as(u16, @intFromEnum(self.compression_method)));
-        try writer.writeIntLittle(u16, self.last_mod_time);
-        try writer.writeIntLittle(u16, self.last_mod_date);
-        try writer.writeIntLittle(u32, self.crc32);
-        try writer.writeIntLittle(u32, @as(u16, @truncate(self.compressed_size)));
-        try writer.writeIntLittle(u32, @as(u16, @truncate(self.uncompressed_size)));
-        try writer.writeIntLittle(u16, self.filename_len);
-        try writer.writeIntLittle(u16, self.extra_len);
-        try writer.writeIntLittle(u16, self.comment_len);
-        try writer.writeIntLittle(u16, self.disk_number_start);
-        try writer.writeIntLittle(u16, self.internal_attributes);
-        try writer.writeIntLittle(u32, self.external_attributes);
-        try writer.writeIntLittle(u32, @as(u16, @truncate(self.local_offset)));
+        try writer.writeInt(u16, self.version_made, .little);
+        try writer.writeInt(u16, self.version_needed, .little);
+        try writer.writeInt(u16, @as(u16, @bitCast(self.flags)), .little);
+        try writer.writeInt(u16, @as(u16, @intFromEnum(self.compression_method)), .little);
+        try writer.writeInt(u16, self.last_mod_time, .little);
+        try writer.writeInt(u16, self.last_mod_date, .little);
+        try writer.writeInt(u32, self.crc32, .little);
+        try writer.writeInt(u32, @as(u16, @truncate(self.compressed_size)), .little);
+        try writer.writeInt(u32, @as(u16, @truncate(self.uncompressed_size)), .little);
+        try writer.writeInt(u16, self.filename_len, .little);
+        try writer.writeInt(u16, self.extra_len, .little);
+        try writer.writeInt(u16, self.comment_len, .little);
+        try writer.writeInt(u16, self.disk_number_start, .little);
+        try writer.writeInt(u16, self.internal_attributes, .little);
+        try writer.writeInt(u32, self.external_attributes, .little);
+        try writer.writeInt(u32, @as(u16, @truncate(self.local_offset)), .little);
     }
 
     pub fn needs64(self: CentralDirectoryRecord) bool {
@@ -288,7 +288,7 @@ pub const EndOfCentralDirectory64Record = struct {
     directory_offset: u64,
 
     pub fn read(reader: anytype) !EndOfCentralDirectory64Record {
-        const sig = try reader.readIntLittle(u32);
+        const sig = try reader.readInt(u32, .little);
         if (sig != signature) return error.InvalidSignature;
 
         var record: EndOfCentralDirectory64Record = undefined;
@@ -297,30 +297,30 @@ pub const EndOfCentralDirectory64Record = struct {
         const nread = try reader.readAll(&buf);
         if (nread == 0) return error.EndOfStream;
 
-        record.size = mem.readIntLittle(u64, buf[0..8]);
-        record.version_made = mem.readIntLittle(u16, buf[8..10]);
-        record.version_needed = mem.readIntLittle(u16, buf[10..12]);
-        record.disk_number = mem.readIntLittle(u32, buf[12..16]);
-        record.disk_central = mem.readIntLittle(u32, buf[16..20]);
-        record.num_entries_disk = mem.readIntLittle(u64, buf[20..28]);
-        record.num_entries_total = mem.readIntLittle(u64, buf[28..36]);
-        record.directory_size = mem.readIntLittle(u64, buf[36..44]);
-        record.directory_offset = mem.readIntLittle(u64, buf[44..52]);
+        record.size = mem.readInt(u64, buf[0..8], .little);
+        record.version_made = mem.readInt(u16, buf[8..10], .little);
+        record.version_needed = mem.readInt(u16, buf[10..12], .little);
+        record.disk_number = mem.readInt(u32, buf[12..16], .little);
+        record.disk_central = mem.readInt(u32, buf[16..20], .little);
+        record.num_entries_disk = mem.readInt(u64, buf[20..28], .little);
+        record.num_entries_total = mem.readInt(u64, buf[28..36], .little);
+        record.directory_size = mem.readInt(u64, buf[36..44], .little);
+        record.directory_offset = mem.readInt(u64, buf[44..52], .little);
 
         return record;
     }
 
     pub fn write(self: EndOfCentralDirectory64Record, writer: anytype) !void {
-        try writer.writeIntLittle(u32, signature);
-        try writer.writeIntLittle(u64, self.size);
-        try writer.writeIntLittle(u16, self.version_made);
-        try writer.writeIntLittle(u16, self.version_needed);
-        try writer.writeIntLittle(u32, self.disk_number);
-        try writer.writeIntLittle(u32, self.disk_central);
-        try writer.writeIntLittle(u64, self.num_entries_disk);
-        try writer.writeIntLittle(u64, self.num_entries_total);
-        try writer.writeIntLittle(u64, self.directory_size);
-        try writer.writeIntLittle(u64, self.directory_offset);
+        try writer.writeInt(u32, signature, .little);
+        try writer.writeInt(u64, self.size, .little);
+        try writer.writeInt(u16, self.version_made, .little);
+        try writer.writeInt(u16, self.version_needed, .little);
+        try writer.writeInt(u32, self.disk_number, .little);
+        try writer.writeInt(u32, self.disk_central, .little);
+        try writer.writeInt(u64, self.num_entries_disk, .little);
+        try writer.writeInt(u64, self.num_entries_total, .little);
+        try writer.writeInt(u64, self.directory_size, .little);
+        try writer.writeInt(u64, self.directory_offset, .little);
     }
 };
 
@@ -340,18 +340,18 @@ pub const EndOfCentralDirectory64Locator = struct {
         const nread = try reader.readAll(&buf);
         if (nread == 0) return error.EndOfStream;
 
-        locator.disk_number = mem.readIntLittle(u32, buf[0..4]);
-        locator.offset = mem.readIntLittle(u64, buf[4..12]);
-        locator.num_disks = mem.readIntLittle(u32, buf[12..16]);
+        locator.disk_number = mem.readInt(u32, buf[0..4], .little);
+        locator.offset = mem.readInt(u64, buf[4..12], .little);
+        locator.num_disks = mem.readInt(u32, buf[12..16], .little);
 
         return locator;
     }
 
     pub fn write(self: EndOfCentralDirectory64Locator, writer: anytype) !void {
-        try writer.writeIntLittle(u32, signature);
-        try writer.writeIntLittle(u32, self.disk_number);
-        try writer.writeIntLittle(u64, self.offset);
-        try writer.writeIntLittle(u32, self.num_disks);
+        try writer.writeInt(u32, signature, .little);
+        try writer.writeInt(u32, self.disk_number, .little);
+        try writer.writeInt(u64, self.offset, .little);
+        try writer.writeInt(u32, self.num_disks, .little);
     }
 };
 
@@ -375,26 +375,26 @@ pub const EndOfCentralDirectoryRecord = struct {
         const nread = try reader.readAll(&buf);
         if (nread == 0) return error.EndOfStream;
 
-        record.disk_number = mem.readIntLittle(u16, buf[0..2]);
-        record.disk_central = mem.readIntLittle(u16, buf[2..4]);
-        record.entries_on_disk = mem.readIntLittle(u16, buf[4..6]);
-        record.entries_total = mem.readIntLittle(u16, buf[6..8]);
-        record.directory_size = mem.readIntLittle(u32, buf[8..12]);
-        record.directory_offset = mem.readIntLittle(u32, buf[12..16]);
-        record.comment_length = mem.readIntLittle(u16, buf[16..18]);
+        record.disk_number = mem.readInt(u16, buf[0..2], .little);
+        record.disk_central = mem.readInt(u16, buf[2..4], .little);
+        record.entries_on_disk = mem.readInt(u16, buf[4..6], .little);
+        record.entries_total = mem.readInt(u16, buf[6..8], .little);
+        record.directory_size = mem.readInt(u32, buf[8..12], .little);
+        record.directory_offset = mem.readInt(u32, buf[12..16], .little);
+        record.comment_length = mem.readInt(u16, buf[16..18], .little);
 
         return record;
     }
 
     pub fn write(self: EndOfCentralDirectoryRecord, writer: anytype) !void {
-        try writer.writeIntLittle(u32, signature);
-        try writer.writeIntLittle(u16, self.disk_number);
-        try writer.writeIntLittle(u16, self.disk_central);
-        try writer.writeIntLittle(u16, self.entries_on_disk);
-        try writer.writeIntLittle(u16, self.entries_total);
-        try writer.writeIntLittle(u32, self.directory_size);
-        try writer.writeIntLittle(u32, self.directory_offset);
-        try writer.writeIntLittle(u16, self.comment_length);
+        try writer.writeInt(u32, signature, .little);
+        try writer.writeInt(u16, self.disk_number, .little);
+        try writer.writeInt(u16, self.disk_central, .little);
+        try writer.writeInt(u16, self.entries_on_disk, .little);
+        try writer.writeInt(u16, self.entries_total, .little);
+        try writer.writeInt(u32, self.directory_size, .little);
+        try writer.writeInt(u32, self.directory_offset, .little);
+        try writer.writeInt(u16, self.comment_length, .little);
     }
 
     pub fn needs64(self: EndOfCentralDirectoryRecord) bool {
@@ -428,19 +428,19 @@ pub const ExtraFieldZip64 = struct {
     pub fn write(self: ExtraFieldZip64, writer: anytype) !void {
         if (!self.present()) return;
 
-        try writer.writeIntLittle(u16, 0x0001);
-        try writer.writeIntLittle(u16, self.length() - 4);
+        try writer.writeInt(u16, 0x0001, .little);
+        try writer.writeInt(u16, self.length() - 4, .little);
 
         if (self.uncompressed) |num| {
-            try writer.writeIntLittle(u64, num);
+            try writer.writeInt(u64, num, .little);
         }
 
         if (self.compressed) |num| {
-            try writer.writeIntLittle(u64, num);
+            try writer.writeInt(u64, num, .little);
         }
 
         if (self.offset) |num| {
-            try writer.writeIntLittle(u64, num);
+            try writer.writeInt(u64, num, .little);
         }
     }
 };

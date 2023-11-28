@@ -118,7 +118,7 @@ pub const ArchiveReader = struct {
 
             eocd_offset = read - 4;
             while (eocd_offset >= 0) : (eocd_offset -= 1) {
-                const signature = std.mem.readIntLittle(u32, buf[eocd_offset..][0..4]);
+                const signature = std.mem.readInt(u32, buf[eocd_offset..][0..4], .little);
                 if (signature == format.EndOfCentralDirectoryRecord.signature) {
                     eocd_offset = read - eocd_offset;
 
@@ -152,7 +152,7 @@ pub const ArchiveReader = struct {
 
                 offset = read - 4;
                 while (offset >= 0) : (offset -= 1) {
-                    const signature = std.mem.readIntLittle(u32, buf[offset..][0..4]);
+                    const signature = std.mem.readInt(u32, buf[offset..][0..4], .little);
                     if (signature == format.EndOfCentralDirectory64Locator.signature) {
                         try seeker.seekBy(-@as(i64, @intCast(read - offset)) + 4);
                         break :find_eocd64l;
@@ -210,25 +210,25 @@ pub const ArchiveReader = struct {
             if (item.needs64()) {
                 var pos: usize = 0;
                 while (pos < item.extra_len) {
-                    const header_id = try buffered_reader.readIntLittle(u16);
-                    const data_len = try buffered_reader.readIntLittle(u16);
+                    const header_id = try buffered_reader.readInt(u16, .little);
+                    const data_len = try buffered_reader.readInt(u16, .little);
                     pos += 4;
 
                     if (header_id == 0x0001) {
                         const before = pos;
 
                         if (item.uncompressed_size == 0xffffffff) {
-                            item.uncompressed_size = try buffered_reader.readIntLittle(u64);
+                            item.uncompressed_size = try buffered_reader.readInt(u64, .little);
                             pos += 8;
                         }
 
                         if (item.compressed_size == 0xffffffff) {
-                            item.compressed_size = try buffered_reader.readIntLittle(u64);
+                            item.compressed_size = try buffered_reader.readInt(u64, .little);
                             pos += 8;
                         }
 
                         if (item.local_offset == 0xffffffff) {
-                            item.local_offset = try buffered_reader.readIntLittle(u64);
+                            item.local_offset = try buffered_reader.readInt(u64, .little);
                             pos += 8;
                         }
 

@@ -4,17 +4,18 @@ const archive = @import("archive");
 const alloc = std.heap.page_allocator;
 
 pub fn main() !void {
-    const in_dir = try std.fs.cwd().openIterableDir("tests/zip", .{});
+    const in_dir = try std.fs.cwd().openDir("tests/zip", .{ .iterate = true });
+
     var it = in_dir.iterate();
 
     while (try it.next()) |entry| {
-        const fd = try in_dir.dir.openFile(entry.name, .{});
+        const fd = try in_dir.openFile(entry.name, .{});
         defer fd.close();
 
         const str = try fd.readToEndAlloc(alloc, std.math.maxInt(usize));
         defer alloc.free(str);
 
-        var stream = std.io.fixedBufferStream(@as([]const u8, str));
+        const stream = std.io.fixedBufferStream(@as([]const u8, str));
         var source = std.io.StreamSource{ .const_buffer = stream };
 
         var arc = archive.formats.zip.reader.ArchiveReader.init(alloc, &source);

@@ -48,7 +48,7 @@ pub fn build(b: *Builder) void {
     const docs = b.option(bool, "emit_docs", "Build library documentation") orelse false;
 
     if (docs)
-        lib_tests.emit_docs = .emit;
+        _ = lib_tests.getEmittedDocs();
 
     // Test Runners
 

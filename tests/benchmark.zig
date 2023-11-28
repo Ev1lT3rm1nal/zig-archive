@@ -31,7 +31,7 @@ pub fn Benchmark(
 
         pub fn add(self: *Self, comptime field: []const u8, measurement: u64) void {
             self.measurements[indexOf(field)]
-                .append(alloc, @intToFloat(f64, measurement)) catch @panic("oom");
+                .append(alloc, @as(f64, @floatFromInt(measurement))) catch @panic("oom");
         }
 
         pub fn setSize(self: *Self, comptime field: []const u8, size: usize) void {
@@ -39,7 +39,7 @@ pub fn Benchmark(
         }
 
         fn indexOf(comptime field: []const u8) comptime_int {
-            inline for (datasets) |dataset, i| {
+            inline for (datasets, 0..) |dataset, i| {
                 if (std.mem.eql(u8, dataset, field)) return i;
             }
 
@@ -85,13 +85,13 @@ pub fn Benchmark(
         pub fn mean(self: Self, comptime field: []const u8) f64 {
             const items = self.measurements[indexOf(field)].items;
 
-            return self.sum(field) / @intToFloat(f64, items.len);
+            return self.sum(field) / @as(f64, @floatFromInt(items.len));
         }
 
         pub fn median(self: Self, comptime field: []const u8) f64 {
             const items = self.measurements[indexOf(field)].items;
 
-            std.sort.sort(f64, items, {}, comptime std.sort.asc(f64));
+            std.mem.sort(f64, items, {}, comptime std.sort.asc(f64));
 
             if (items.len % 2 == 0) {
                 return (items[items.len / 2] + items[items.len / 2 - 1]) / 2;
@@ -111,7 +111,7 @@ pub fn Benchmark(
 
             const avg = self.mean(field);
 
-            return std.math.sqrt(sum_sq / @intToFloat(f64, items.len) - avg * avg);
+            return std.math.sqrt(sum_sq / @as(f64, @floatFromInt(items.len)) - avg * avg);
         }
 
         pub fn confidence(self: Self, comptime field: []const u8) f64 {
@@ -119,7 +119,7 @@ pub fn Benchmark(
 
             const dev = self.stddev(field);
 
-            return 2.58 * dev / std.math.sqrt(@intToFloat(f64, items.len));
+            return 2.58 * dev / std.math.sqrt(@as(f64, @floatFromInt(items.len)));
         }
 
         pub fn meanSpeed(self: Self, comptime field: []const u8) f64 {
@@ -128,10 +128,10 @@ pub fn Benchmark(
             var this_sum: f64 = 0.0;
 
             for (items) |measurement| {
-                this_sum += @intToFloat(f64, self.sizes[indexOf(field)]) / (measurement / 1e9);
+                this_sum += @as(f64, @floatFromInt(self.sizes[indexOf(field)])) / (measurement / 1e9);
             }
 
-            return this_sum / @intToFloat(f64, items.len);
+            return this_sum / @as(f64, @floatFromInt(items.len));
         }
 
         pub fn stddevSpeed(self: Self, comptime field: []const u8) f64 {
@@ -140,14 +140,14 @@ pub fn Benchmark(
             var sum_sq: f64 = 0.0;
 
             for (items) |measurement| {
-                const speed = @intToFloat(f64, self.sizes[indexOf(field)]) / (measurement / 1e9);
+                const speed = @as(f64, @floatFromInt(self.sizes[indexOf(field)])) / (measurement / 1e9);
 
                 sum_sq += speed * speed;
             }
 
             const avg = self.meanSpeed(field);
 
-            return std.math.sqrt(sum_sq / @intToFloat(f64, items.len) - avg * avg);
+            return std.math.sqrt(sum_sq / @as(f64, @floatFromInt(items.len)) - avg * avg);
         }
 
         pub fn confidenceSpeed(self: Self, comptime field: []const u8) f64 {
@@ -155,7 +155,7 @@ pub fn Benchmark(
 
             const dev = self.stddevSpeed(field);
 
-            return 2.58 * dev / std.math.sqrt(@intToFloat(f64, items.len));
+            return 2.58 * dev / std.math.sqrt(@as(f64, @floatFromInt(items.len)));
         }
 
         pub fn reportSingle(self: Self, comptime field: []const u8) void {
