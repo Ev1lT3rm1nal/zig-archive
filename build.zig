@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const Builder = std.build.Builder;
+const Builder = std.Build;
 
 const tests = .{
     "read_zip",
@@ -33,7 +33,7 @@ pub fn build(b: *Builder) void {
     const target = b.standardTargetOptions(.{});
 
     const archive_module = b.addModule("archive", .{
-        .source_file = .{ .path = "src/main.zig" },
+        .root_source_file = .{ .path = "src/main.zig" },
     });
 
     // Library Tests
@@ -57,12 +57,13 @@ pub fn build(b: *Builder) void {
     inline for (tests) |file| {
         const zip_runner = b.addExecutable(.{
             .name = file,
+            .target = target,
             .root_source_file = .{ .path = "tests/" ++ file ++ ".zig" },
             .optimize = optimize,
         });
         zip_runner.linkLibC();
 
-        zip_runner.addModule("archive", archive_module);
+        zip_runner.root_module.addImport("archive", archive_module);
 
         b.installArtifact(zip_runner);
         const run_zip_runner = b.addRunArtifact(zip_runner);
@@ -86,10 +87,11 @@ pub fn build(b: *Builder) void {
         const zip_bench = b.addExecutable(.{
             .name = file,
             .root_source_file = .{ .path = "tests/" ++ file ++ ".zig" },
+            .target = target,
             .optimize = optimize,
         });
-        zip_bench.addOptions("build_options", bench_options);
-        zip_bench.addModule("archive", archive_module);
+        zip_bench.root_module.addOptions("build_options", bench_options);
+        zip_bench.root_module.addImport("archive", archive_module);
 
         b.installArtifact(zip_bench);
         const run_zip_bench = b.addRunArtifact(zip_bench);
