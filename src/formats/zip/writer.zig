@@ -2,7 +2,7 @@ const std = @import("std");
 
 const math = std.math;
 const ascii = std.ascii;
-const deflate = std.compress.deflate;
+const deflate = std.compress.flate.deflate;
 
 const hashing_util = @import("../../hashing.zig");
 
@@ -145,13 +145,12 @@ pub const ArchiveWriter = struct {
 
         var fifo = Fifo.init();
         if (compress) {
-            var compressor = try std.compress.deflate.compressor(self.allocator, buffered.writer(), .{});
-            defer compressor.deinit();
+            var compressor = try std.compress.flate.compressor(buffered.writer(), .{});
 
             try fifo.pump(hashing.reader(), compressor.writer());
-            try compressor.close();
+            try compressor.finish();
 
-            comp_size = compressor.bytesWritten();
+            comp_size = compressor.tokens.list.len;
         } else {
             try fifo.pump(hashing.reader(), buffered.writer());
             comp_size = uncomp_size;

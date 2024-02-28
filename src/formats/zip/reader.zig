@@ -2,7 +2,7 @@ const std = @import("std");
 
 const math = std.math;
 const ascii = std.ascii;
-const deflate = std.compress.deflate;
+const flate = std.compress.flate;
 
 const hashing_util = @import("../../hashing.zig");
 const HashingWriter = hashing_util.HashingWriter;
@@ -342,9 +342,7 @@ pub const ArchiveReader = struct {
             },
             .deflated => {
                 // This is not reusable, is there a reason for that?
-                var decompressor = try deflate.decompressor(self.allocator, limited_reader, null);
-                defer decompressor.deinit();
-
+                var decompressor = flate.decompressor(limited_reader);
                 try fifo.pump(decompressor.reader(), hwriter);
             },
             else => return error.UnsupportedCompressionMethod,
