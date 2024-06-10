@@ -10,8 +10,14 @@ pub const CompressionMethod = enum(u16) {
     _,
 };
 
-const Crc32Poly: std.hash.crc.Polynomial = @enumFromInt(0xEDB88320);
-pub const Crc32 = std.hash.crc.Crc32WithPoly(Crc32Poly);
+const Crc32Poly = .{
+    .polynomial = 0xEDB88320,
+    .initial = 0xFFFFFFFF,
+    .reflect_input = true,
+    .reflect_output = true,
+    .xor_output = 0xFFFFFFFF,
+};
+pub const Crc32 = std.hash.crc.Crc(u32, Crc32Poly);
 
 pub const Version = struct {
     pub const Vendor = enum(u8) {

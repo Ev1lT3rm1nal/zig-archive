@@ -13,7 +13,7 @@ const bench = .{
 
 pub fn addArchive(b: *Builder, target: std.zig.CrossTarget, optimize: std.builtin.OptimizeMode) *std.Build.CompileStep {
     const archive = b.addStaticLibrary(.{
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .name = "archive",
         .target = target,
         .optimize = optimize,
@@ -23,7 +23,7 @@ pub fn addArchive(b: *Builder, target: std.zig.CrossTarget, optimize: std.builti
 
 pub fn addModuleArchive(b: *Builder, step: *Builder.CompileStep) void {
     const archive_module = b.addModule("archive", .{
-        .source_file = .{ .path = "zig-archive/src/main.zig" },
+        .source_file = b.path("zig-archive/src/main.zig"),
     });
     step.addModule("archive", archive_module);
 }
@@ -33,13 +33,13 @@ pub fn build(b: *Builder) void {
     const target = b.standardTargetOptions(.{});
 
     const archive_module = b.addModule("archive", .{
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
     });
 
     // Library Tests
 
     const lib_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .optimize = optimize,
         .target = target,
     });
@@ -58,7 +58,7 @@ pub fn build(b: *Builder) void {
         const zip_runner = b.addExecutable(.{
             .name = file,
             .target = target,
-            .root_source_file = .{ .path = "tests/" ++ file ++ ".zig" },
+            .root_source_file = b.path("tests/" ++ file ++ ".zig"),
             .optimize = optimize,
         });
         zip_runner.linkLibC();
@@ -86,7 +86,7 @@ pub fn build(b: *Builder) void {
     inline for (bench) |file| {
         const zip_bench = b.addExecutable(.{
             .name = file,
-            .root_source_file = .{ .path = "tests/" ++ file ++ ".zig" },
+            .root_source_file = b.path("tests/" ++ file ++ ".zig"),
             .target = target,
             .optimize = optimize,
         });
